@@ -115,7 +115,6 @@ Othello: $500 40석
 ---
 
 ## 1.4 statement() 함수 쪼개기
-### 함수 추출하기
 1. 기존의 switch문을 `amountFor()` 함수로 추출한다.
 2. `amountFor()` 함수에 thisAmount 의 이름은 result 로 변경하는게 가능하다.
 3. `amountFor()` 함수의 매개변수를 performance 에서 ePerformance 로 변경한다.(자바에는 타입이 명확하기 때문에 변경할 필요는 없다.)
@@ -133,14 +132,42 @@ Othello: $500 40석
 ---
 
 ## 1.5 중간 점검: 난무하는 중첩 함수
+```java
+public String statement(Invoice invoice, Plays plays) throws Exception {
+        StringBuilder result = new StringBuilder(String.format("청구내역 (고객명: %s)\n", invoice.getCustomer()));
+        for (Performance performance : invoice.getPerformances()) {
+            result.append(String.format("%s: $%d %d석\n",playFor(plays, performance).getName(), amountFor(performance, plays) / 100, performance.getAudience()));
+        }
+
+        result.append(String.format("총액: $%d\n",totalAmount(invoice, plays)));
+        result.append(String.format("적립 포인트: %d점", totalVolumeCredits(invoice, plays)));
+        return result.toString();
+    }
+```
+statement() 메소드의 경우 전체 줄이 7 줄 밖에 없다.
+
+계산 로직은 모두 여러 개의 보조 함수로 빼냈다.
+
+결과적으로 각 계산 과정은 물론 전체 흐름을 이해하기가 훨씬 쉬워졌다.
 
 ---
 
 ## 1.6 계산 단계와 포맷팅 단계 분리 하기
+텍스트 버전과 HTML 버전 함수 모두가 똑같은 계산 함수를 이용하여 보여주고 싶다.
+그래서 겹치는 부분인 계산 함수를 분리하자.
+첫 단계에서는 statement()에 필요한 데이터를 처리하는 부분으로 하고 두번 째 단계에서는 앞서 처리한 결과를 택스트나 HTML로 표현하도록 한다.
+1. 중간 데이터 구조 역할을 할 객체인 StatementData를 만들어서 renderPlainText() 에 인수로 전달한다.
+2. renderPlainText() 함수를 만들어서 StatementData를 인수로 받아서 처리한다.
+3. 나머지 playFor(), amountFor(), totalAmount(), totalVolumeCredits() 함수를 StatementData 객체를 인수로 받도록 수정한다.
+4. renderHtml() 함수를 만들어서 StatementData를 인수로 받아서 처리한다.
+
+이로써 계산과 포맷팅을 분리하였다. 이제 계산 로직을 수정할 때는 계산 로직만 수정하면 되고, 포맷팅 로직을 수정할 때는 포맷팅 로직만 수정하면 된다.
 
 ---
 
 ## 1.7 중간 점검: 두 파일(과 두단계)로 분리됨
+처음 보단 코드량이 늘어 났지만 추가된 코드 덕분에 전체 로직을 구성하는 요소 각각이 더 뚜렷이 부각되고, 계산하는 부분과 출력 형식을 다루는 부분이 분리됐다.
+이렇게 모듈화하면 각 부분이 하는 일과 그 부분들이 맞물려 돌아가는 과정을 파악하기 쉬워진다.
 
 ---
 
