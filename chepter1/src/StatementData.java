@@ -3,22 +3,16 @@ import java.util.List;
 public class StatementData {
     private Invoice invoice;
     private Plays plays;
+    private PerformanceCalculatorFactory performanceCalculatorFactory;
 
     public StatementData(Invoice invoice, Plays plays) {
         this.invoice = invoice;
         this.plays = plays;
+        this.performanceCalculatorFactory = new PerformanceCalculatorFactory();
     }
 
     public String getCustomer() {
         return invoice.getCustomer();
-    }
-
-    public Invoice getInvoice() {
-        return invoice;
-    }
-
-    public Plays getPlays() {
-        return plays;
     }
 
     public List<Performance> getPerformances() {
@@ -30,25 +24,7 @@ public class StatementData {
     }
 
     public int amountFor(Performance performance) throws Exception {
-        int result;
-        switch (playFor(performance).getType()) {
-            case TRAGEDY:
-                result = 40000;
-                if (performance.getAudience() > 30) {
-                    result += 1000 * (performance.getAudience() - 30);
-                }
-                break;
-            case COMEDY:
-                result = 30000;
-                if (performance.getAudience() > 20) {
-                    result += 10000 + 500 * (performance.getAudience() - 20);
-                }
-                result += 300 * performance.getAudience();
-                break;
-            default:
-                throw new Exception("알 수 없는 장르");
-        }
-        return result;
+        return new PerformanceCalculatorFactory().createPerformanceCalculator(performance, playFor(performance)).amountFor();
     }
 
     public int totalAmount() throws Exception {
@@ -68,14 +44,6 @@ public class StatementData {
     }
 
     private int volumeCreditFor(Performance performance) {
-        int result = 0;
-
-        result += Math.max(performance.getAudience() - 30, 0);
-
-        if (playFor(performance).getType().equals(PlayType.COMEDY)) {
-            result += Math.floor(performance.getAudience() / 5);
-        }
-
-        return result;
+        return new PerformanceCalculator(performance, playFor(performance)).volumeCreditFor();
     }
 }
